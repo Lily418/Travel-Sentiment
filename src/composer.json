@@ -1,0 +1,7 @@
+{
+    "require": {
+        "mikecao/flight": "^1.2",
+        "datasift/ifconfig-parser": "0.1.1",
+        "guzzlehttp/guzzle": "6.1"
+    }
+}
