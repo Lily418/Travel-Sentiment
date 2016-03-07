@@ -1,14 +1,22 @@
 <?php
 namespace TravelSentiment;
 require_once 'vendor/autoload.php';
-require_once 'distributed_network_discovery.php';
+require_once 'NetworkDiscovery.class.php';
 
-\Flight::set('networkDiscovery', new NetworkDiscovery());
+$networkDiscovery = new NetworkDiscovery();
+
+\Flight::set('networkDiscovery', $networkDiscovery);
+
+$leaderClass = $networkDiscovery->getConfig()->leader;
+require_once 'Leaders/'. $leaderClass .'.class.php';
+$leader = new $leaderClass;
+\Flight::set('leader', $leader);
+
 
 \Flight::route('/messageRing/@id/@maxid', function($id, $maxid){
   $networkDiscovery = \Flight::get('networkDiscovery');
   if($id == $networkDiscovery->getOwnNetworkId()) {
-    echo $maxid;
+    \Flight::json($maxid);
   } else {
     if($networkDiscovery->getOwnNetworkId() > $maxid) {
       $maxid = $networkDiscovery->getOwnNetworkId();
@@ -16,6 +24,11 @@ require_once 'distributed_network_discovery.php';
     echo $networkDiscovery->sendNetworkId($maxid, $id);
     
   }
+});
+
+\Flight::route('/getTask', function(){
+  $leader = \Flight::get('leader');
+  \Flight::json($leader->generateTask());
 });
 
 \Flight::start();

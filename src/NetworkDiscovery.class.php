@@ -12,11 +12,12 @@ class NetworkDiscovery {
   private $discoveryProtocolPort;
   private $machineNetworkId;
   private $workerIps;
+  private $config;
   
   public function __construct(){
-    $config = json_decode(file_get_contents("worker_config.json"));
-    $this->workerIps = $config->workerIps;
-    $this->discoveryProtocolPort = $config->port;
+    $this->config = json_decode(file_get_contents("worker_config.json"));
+    $this->workerIps = $this->config->workerIps;
+    $this->discoveryProtocolPort = $this->config->port;
     
     $ifconfig = new \Datasift\IfconfigParser\Parser\Ubuntu;
     $interfaces = $ifconfig->parse(shell_exec("ifconfig"));
@@ -35,10 +36,24 @@ class NetworkDiscovery {
     }
   }
 
+  public function getLeader() {
+    $leaderId = json_decode($this->sendNetworkId($this->getOwnNetworkId()));
+    return $this->workerIps[$leaderId];
+  }
+  
+  function getOwnIp() {
+    return $this->workerIps[$this->machineNetworkId];
+  }
+
   function getOwnNetworkId() {
     return $this->machineNetworkId;
   }
-  
+
+  function getConfig() {
+    return $this->config;
+  }
+
+
   
   function sendNetworkId($maxid, $id = NULL) {
     if(!isset($id)) {
